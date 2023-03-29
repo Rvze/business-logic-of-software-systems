@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.0.5'
     id 'io.spring.dependency-management' version '1.1.0'
+    id 'org.liquibase.gradle' version '2.0.4'
 }
 
 group = 'com.example'
@@ -26,7 +27,25 @@ dependencies {
     runtimeOnly 'org.postgresql:postgresql'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    liquibaseRuntime 'org.liquibase:liquibase-core:4.8.0'
+    liquibaseRuntime 'org.liquibase:liquibase-groovy-dsl:2.1.1'
+    liquibaseRuntime("org.postgresql:postgresql")
+    implementation('org.springframework.boot:spring-boot-starter-webflux:2.6.4')
 }
+apply plugin: "org.liquibase.gradle"
+liquibase {
+    activities {
+        main {
+            driver 'org.postgresql.Driver'
+            changeLogFile 'src/main/resources/db/changelog/rootChangeLog.xml'
+            url 'jdbc:postgresql://localhost:5433/blps'
+            defaultSchemaName 'lab1'
+            username 'postgres'
+            password ''
+        }
+    }
+}
+
 
 tasks.named('test') {
     useJUnitPlatform()
