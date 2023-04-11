@@ -1,7 +1,17 @@
+buildscript {
+    ext {
+        queryDslVersion = '5.0.0'
+        lombokVersion = '1.18.26'
+        springBootVersion = '3.0.5'
+    }
+}
+
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.0.5'
     id 'io.spring.dependency-management' version '1.1.0'
+    id 'org.liquibase.gradle' version '2.0.4'
+    id 'idea'
 }
 
 group = 'com.example'
@@ -14,6 +24,12 @@ configurations {
     }
 }
 
+idea {
+    module {
+        sourceDirs += file('src/querydsl/')
+        generatedSourceDirs += file('src/querydsl/')
+    }
+}
 repositories {
     mavenCentral()
 }
@@ -21,12 +37,57 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.liquibase:liquibase-core'
-    compileOnly 'org.projectlombok:lombok'
+    implementation 'org.mapstruct:mapstruct:1.5.3.Final'
+    implementation("org.projectlombok:lombok:${lombokVersion}")
+    implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
+    implementation("com.querydsl:querydsl-core:${queryDslVersion}")
+    implementation('org.springframework.boot:spring-boot-starter-webflux:2.6.4')
+
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    compileOnly('org.springframework:spring-web:6.0.0')
+
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'org.postgresql:postgresql'
-    annotationProcessor 'org.projectlombok:lombok'
+    liquibaseRuntime 'org.liquibase:liquibase-core:4.8.0'
+    liquibaseRuntime 'org.liquibase:liquibase-groovy-dsl:2.1.1'
+    liquibaseRuntime("org.postgresql:postgresql")
+
+    implementation 'com.querydsl:querydsl-jpa:4.4.0'
+    annotationProcessor 'com.querydsl:querydsl-apt:4.4.0'
+    annotationProcessor("com.querydsl:querydsl-apt:${queryDslVersion}",
+            "com.querydsl:querydsl-jpa:${queryDslVersion}",
+            "org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.2.Final",
+            "org.projectlombok:lombok:${lombokVersion}",
+            'org.mapstruct:mapstruct-processor:1.5.3.Final'
+    )
+
+    /* TEST */
+    testAnnotationProcessor("com.querydsl:querydsl-apt:${queryDslVersion}:jpa")
+    testAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")
+
+    testImplementation("com.querydsl:querydsl-jpa:${queryDslVersion}")
+    testImplementation("org.projectlombok:lombok:${lombokVersion}")
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    testCompileOnly("org.projectlombok:lombok:${lombokVersion}")
+
 }
+
+apply plugin: "org.liquibase.gradle"
+
+liquibase {
+    activities {
+        main {
+            driver 'org.postgresql.Driver'
+            changeLogFile 'src/main/resources/db/changelog/rootChangeLog.xml'
+            url 'jdbc:postgresql://localhost:5433/blps'
+            defaultSchemaName 'lab1'
+            username 'postgres'
+            password ''
+        }
+    }
+}
+
 
 tasks.named('test') {
     useJUnitPlatform()
