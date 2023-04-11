@@ -1,17 +1,19 @@
 package com.example.business_logic_of_software_systems.data.domain;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.Hibernate;
 
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
 @Table(name = "category")
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@Getter
+@Setter
+@ToString
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "category_category_id_seq")
@@ -22,5 +24,19 @@ public class Category {
     private String categoryName;
 
     @ManyToMany(mappedBy = "categories")
+    @ToString.Exclude
     private Set<Product> products;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        Category category = (Category) o;
+        return getCategoryId() != null && Objects.equals(getCategoryId(), category.getCategoryId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }
